@@ -32,6 +32,7 @@ func NewGame() *Game {
 		GameOver:       false,
 	}
 
+	fmt.Println("fill board")
 	// Fill the central board initially
 	game.FillCentralBoard()
 
@@ -44,10 +45,10 @@ func NewGame() *Game {
 // Fill the central board with tokens
 func (g *Game) FillCentralBoard() {
 	for i := range g.CentralBoard.Spaces {
-		if len(g.CentralBoard.Spaces[i]) < 3 {
-			newTokens := g.Pouch.DrawTokens(3 - len(g.CentralBoard.Spaces[i]))
-			g.CentralBoard.Spaces[i] = append(g.CentralBoard.Spaces[i], newTokens...)
-		}
+		newTokens := g.Pouch.DrawTokens(3)
+		fmt.Println(newTokens)
+		fmt.Println(g.Pouch)
+		g.CentralBoard.Spaces[i] = newTokens
 	}
 }
 
