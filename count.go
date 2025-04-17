@@ -1,17 +1,7 @@
 package main
 
-// Calculate score for the game
 func (g *Game) CalculateScore() int {
 	score := 0
-
-	// Score for completed and in-progress animal cards
-	for _, animal := range g.PlayerCards {
-		if animal.CubesLeft < len(animal.Points) {
-			points := animal.Points[len(animal.Points)-animal.CubesLeft-1]
-			score += points
-		}
-	}
-
 	// Score for buildings (simplified)
 	buildings := g.CountBuildings()
 	score += buildings * 5
@@ -35,7 +25,6 @@ func (g *Game) CalculateScore() int {
 	return score
 }
 
-// Count buildings
 func (g *Game) CountBuildings() int {
 	count := 0
 	for i := 0; i < BoardSize; i++ {
@@ -62,7 +51,6 @@ func (g *Game) CountBuildings() int {
 	return count
 }
 
-// Count trees
 func (g *Game) CountTrees() int {
 	points := 0
 	for i := 0; i < BoardSize; i++ {
@@ -76,7 +64,6 @@ func (g *Game) CountTrees() int {
 	return points
 }
 
-// Count mountains
 func (g *Game) CountMountains() int {
 	points := 0
 	mountains := make(map[Coordinate]bool)
@@ -112,7 +99,6 @@ func (g *Game) CountMountains() int {
 	return points
 }
 
-// Count fields
 func (g *Game) CountFields() int {
 	count := 0
 	visited := make([][]bool, BoardSize)
@@ -135,7 +121,6 @@ func (g *Game) CountFields() int {
 	return count
 }
 
-// Count rivers
 func (g *Game) CountRivers() int {
 	// Find the longest river (consecutive blue tokens)
 	maxLength := 0
@@ -166,7 +151,6 @@ func (g *Game) CountRivers() int {
 	return points
 }
 
-// Calculate suns (success level) based on score
 func (g *Game) CalculateSuns(score int, sideB bool, spiritBonus bool) int {
 	suns := 0
 
