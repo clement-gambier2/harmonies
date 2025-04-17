@@ -3,7 +3,7 @@ package main
 // Depth-first search to find contiguous groups
 func dfs(g *Game, visited [][]bool, i, j int, color TokenColor) int {
 	if i < 0 || i >= BoardSize || j < 0 || j >= BoardSize ||
-		visited[i][j] || g.PersonalBoard.Tokens[i][j].Color != color {
+		visited[i][j] || g.Landscape.Tokens[i][j].Color != color {
 		return 0
 	}
 

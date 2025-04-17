@@ -1,13 +1,12 @@
 package main
 
-// PersonalBoard represents a player's personal board
-type PersonalBoard struct {
+// Landscape represents a player's personal board
+type Landscape struct {
 	Tokens [][]Token
 }
 
-// Create a new personal board
-func NewPersonalBoard() *PersonalBoard {
-	personalBoard := &PersonalBoard{
+func NewLandscape() *Landscape {
+	personalBoard := &Landscape{
 		Tokens: make([][]Token, BoardSize),
 	}
 	for i := range personalBoard.Tokens {

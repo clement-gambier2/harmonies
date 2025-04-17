@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strconv"
 	"strings"
 )
 
@@ -11,7 +10,7 @@ import (
 type Game struct {
 	Pouch          *Pouch
 	CentralBoard   *CentralBoard
-	PersonalBoard  *PersonalBoard
+	Landscape      *Landscape
 	AvailableCards []*Animal
 	PlayerCards    []*Animal
 	Score          int
@@ -24,7 +23,7 @@ func NewGame() *Game {
 	game := &Game{
 		Pouch:          NewPouch(),
 		CentralBoard:   NewCentralBoard(),
-		PersonalBoard:  NewPersonalBoard(),
+		Landscape:      NewLandscape(),
 		AvailableCards: make([]*Animal, 0),
 		PlayerCards:    make([]*Animal, 0),
 		Score:          0,
@@ -32,7 +31,6 @@ func NewGame() *Game {
 		GameOver:       false,
 	}
 
-	fmt.Println("fill board")
 	// Fill the central board initially
 	game.FillCentralBoard()
 
@@ -42,12 +40,9 @@ func NewGame() *Game {
 	return game
 }
 
-// Fill the central board with tokens
 func (g *Game) FillCentralBoard() {
 	for i := range g.CentralBoard.Spaces {
 		newTokens := g.Pouch.DrawTokens(3)
-		fmt.Println(newTokens)
-		fmt.Println(g.Pouch)
 		g.CentralBoard.Spaces[i] = newTokens
 	}
 }
@@ -99,7 +94,7 @@ func (g *Game) Display() {
 	for i := 0; i < BoardSize; i++ {
 		fmt.Printf("%d | ", i+1)
 		for j := 0; j < BoardSize; j++ {
-			token := g.PersonalBoard.Tokens[i][j]
+			token := g.Landscape.Tokens[i][j]
 			if token.Color == Empty {
 				fmt.Print("   | ")
 			} else {
@@ -341,77 +336,63 @@ func (g *Game) PlayTurn() {
 		g.Display()
 		fmt.Printf("Placing token %d/%d: %s\n", i+1, len(tokens), ColorName(token))
 
-		var x, y int
+		var row, col int
 		for {
 			fmt.Print("Enter position (row column): ")
-			var input string
-			fmt.Scanln(&input)
-			parts := strings.Split(input, " ")
-			if len(parts) != 2 {
-				fmt.Println("Invalid input. Enter row and column separated by space.")
-				continue
-			}
-
-			var err error
-			x, err = strconv.Atoi(parts[0])
+			_, err := fmt.Scanf("%d %d", &row, &col)
 			if err != nil {
-				fmt.Println("Invalid row. Must be a number.")
-				continue
-			}
-
-			y, err = strconv.Atoi(parts[1])
-			if err != nil {
-				fmt.Println("Invalid column. Must be a number.")
+				fmt.Println("Invalid input. Enter row and column as numbers separated by space.")
 				continue
 			}
 
 			// Adjust for 1-indexed input
-			x--
-			y--
+			row--
+			col--
 
-			if g.CanPlaceToken(x, y, token) {
+			if g.CanPlaceToken(row, col, token) {
 				break
 			}
 			fmt.Println("Cannot place token there. Try again.")
 		}
 
-		g.PlaceToken(x, y, token)
+		g.PlaceToken(row, col, token)
 
 		// After placing a token, offer to place an animal cube
 		g.Display()
-		fmt.Print("Do you want to place an animal cube? (y/n): ")
-		var wantCube string
-		fmt.Scanln(&wantCube)
+		fmt.Println(g.Landscape)
+		//fmt.Print("Do you want to place an animal cube? (y/n): ")
+		//var wantCube string
+		//fmt.Scanln(&wantCube)
 
-		if strings.ToLower(wantCube) == "y" {
-			for {
-				if len(g.PlayerCards) == 0 {
-					fmt.Println("No animal cards available.")
-					break
-				}
-
-				fmt.Print("Choose an animal card (1-", len(g.PlayerCards), ") or 0 to skip: ")
-				var cardChoice int
-				fmt.Scanln(&cardChoice)
-
-				if cardChoice == 0 {
-					break
-				}
-
-				cardChoice--
-				if cardChoice < 0 || cardChoice >= len(g.PlayerCards) {
-					fmt.Println("Invalid choice. Try again.")
-					continue
-				}
-
-				if g.PlaceAnimalCube(cardChoice) {
-					fmt.Println("Animal cube placed successfully!")
-					break
-				} else {
-					fmt.Println("Cannot place cube for this animal. Try another card.")
-				}
-			}
-		}
+		//if strings.ToLower(wantCube) == "y" {
+		//	for {
+		//		if len(g.PlayerCards) == 0 {
+		//			fmt.Println("No animal cards available.")
+		//			break
+		//		}
+		//
+		//		fmt.Print("Choose an animal card (1-", len(g.PlayerCards), ") or 0 to skip: ")
+		//		var cardChoice int
+		//		fmt.Scanln(&cardChoice)
+		//
+		//		if cardChoice == 0 {
+		//			break
+		//		}
+		//
+		//		cardChoice--
+		//		if cardChoice < 0 || cardChoice >= len(g.PlayerCards) {
+		//			fmt.Println("Invalid choice. Try again.")
+		//			continue
+		//		}
+		//
+		//		if g.PlaceAnimalCube(cardChoice) {
+		//			fmt.Println("Animal cube placed successfully!")
+		//			break
+		//		} else {
+		//			fmt.Println("Cannot place cube for this animal. Try another card.")
+		//		}
+		//	}
+		//}
 	}
 
 	// Option to take an animal card
@@ -504,7 +485,7 @@ func (g *Game) CheckGameOver() {
 	emptySpaces := 0
 	for i := 0; i < BoardSize; i++ {
 		for j := 0; j < BoardSize; j++ {
-			if g.PersonalBoard.Tokens[i][j].Color == Empty {
+			if g.Landscape.Tokens[i][j].Color == Empty {
 				emptySpaces++
 			}
 		}
@@ -531,41 +512,40 @@ func (g *Game) CanPlaceToken(x, y int, color TokenColor) bool {
 	}
 
 	// Check if there's an animal cube on the space
-	if g.PersonalBoard.Tokens[x][y].Cube {
+	if g.Landscape.Tokens[x][y].Cube {
 		return false
 	}
 
 	// Tokens can always be placed on empty spaces
-	if g.PersonalBoard.Tokens[x][y].Color == Empty {
+	if g.Landscape.Tokens[x][y].Color == Empty {
 		return true
 	}
 
 	// Check stacking rules:
 	// 1. Gray can be stacked on Gray
-	if color == Gray && g.PersonalBoard.Tokens[x][y].Color == Gray && g.PersonalBoard.Tokens[x][y].Height < ThreeHigh {
+	if color == Gray && g.Landscape.Tokens[x][y].Color == Gray && g.Landscape.Tokens[x][y].Height < ThreeHigh {
 		return true
 	}
 
 	// 2. Green can be stacked on Brown
-	if color == Green && g.PersonalBoard.Tokens[x][y].Color == Brown && g.PersonalBoard.Tokens[x][y].Height < ThreeHigh {
+	if color == Green && g.Landscape.Tokens[x][y].Color == Brown && g.Landscape.Tokens[x][y].Height < ThreeHigh {
 		return true
 	}
 
 	// 3. Red can be stacked on Red, Gray, or Brown
-	if color == Red && (g.PersonalBoard.Tokens[x][y].Color == Red || g.PersonalBoard.Tokens[x][y].Color == Gray || g.PersonalBoard.Tokens[x][y].Color == Brown) && g.PersonalBoard.Tokens[x][y].Height < TwoHigh {
+	if color == Red && (g.Landscape.Tokens[x][y].Color == Red || g.Landscape.Tokens[x][y].Color == Gray || g.Landscape.Tokens[x][y].Color == Brown) && g.Landscape.Tokens[x][y].Height < TwoHigh {
 		return true
 	}
 
 	return false
 }
 
-// Place a token on the personal board
 func (g *Game) PlaceToken(x, y int, color TokenColor) bool {
 	if !g.CanPlaceToken(x, y, color) {
 		return false
 	}
 
-	token := &g.PersonalBoard.Tokens[x][y]
+	token := &g.Landscape.Tokens[x][y]
 	if token.Color == Empty {
 		token.Color = color
 		token.Height = OneHigh
@@ -600,19 +580,19 @@ func (g *Game) CheckHabitatMatch(animal *Animal, startX, startY int, orientation
 
 		// For the position where the cube goes, check if it's empty of cubes
 		if coord.X == animal.CubePosition.X && coord.Y == animal.CubePosition.Y {
-			if g.PersonalBoard.Tokens[x][y].Cube {
+			if g.Landscape.Tokens[x][y].Cube {
 				return false
 			}
 
 			// Also check if the color matches
-			if g.PersonalBoard.Tokens[x][y].Color != animal.Color {
+			if g.Landscape.Tokens[x][y].Color != animal.Color {
 				return false
 			}
 		}
 
 		// For mountain and tree heights, check if they match
 		// This is simplified - you would need more detailed logic for exact matching
-		if g.PersonalBoard.Tokens[x][y].Color == Empty {
+		if g.Landscape.Tokens[x][y].Color == Empty {
 			return false
 		}
 	}
@@ -640,7 +620,7 @@ func (g *Game) PlaceAnimalCube(animalIndex int) bool {
 					pattern := animal.Orientations[orientation]
 					for _, coord := range pattern {
 						if coord.X == animal.CubePosition.X && coord.Y == animal.CubePosition.Y {
-							g.PersonalBoard.Tokens[x+coord.X][y+coord.Y].Cube = true
+							g.Landscape.Tokens[x+coord.X][y+coord.Y].Cube = true
 							animal.CubesLeft--
 							if animal.CubesLeft == 0 {
 								animal.Completed = true
