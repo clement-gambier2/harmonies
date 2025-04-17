@@ -40,16 +40,16 @@ func (g *Game) CountBuildings() int {
 	count := 0
 	for i := 0; i < BoardSize; i++ {
 		for j := 0; j < BoardSize; j++ {
-			if g.PersonalBoard.Tokens[i][j].Color == Red && g.PersonalBoard.Tokens[i][j].Height == TwoHigh {
+			if g.Landscape.Tokens[i][j].Color == Red && g.Landscape.Tokens[i][j].Height == TwoHigh {
 				// Check if surrounded by at least 3 different colors
 				colors := make(map[TokenColor]bool)
 
 				// Check adjacent spaces
 				for _, dir := range []struct{ dx, dy int }{{0, 1}, {1, 0}, {0, -1}, {-1, 0}} {
 					ni, nj := i+dir.dx, j+dir.dy
-					if ni >= 0 && ni < BoardSize && nj >= 0 && nj < BoardSize && g.PersonalBoard.Tokens[ni][nj].Color != Empty {
+					if ni >= 0 && ni < BoardSize && nj >= 0 && nj < BoardSize && g.Landscape.Tokens[ni][nj].Color != Empty {
 
-						colors[g.PersonalBoard.Tokens[ni][nj].Color] = true
+						colors[g.Landscape.Tokens[ni][nj].Color] = true
 					}
 				}
 
@@ -67,9 +67,9 @@ func (g *Game) CountTrees() int {
 	points := 0
 	for i := 0; i < BoardSize; i++ {
 		for j := 0; j < BoardSize; j++ {
-			if g.PersonalBoard.Tokens[i][j].Color == Green {
+			if g.Landscape.Tokens[i][j].Color == Green {
 				// Trees score based on height
-				points += int(g.PersonalBoard.Tokens[i][j].Height)
+				points += int(g.Landscape.Tokens[i][j].Height)
 			}
 		}
 	}
@@ -84,7 +84,7 @@ func (g *Game) CountMountains() int {
 	// First pass: identify all mountains
 	for i := 0; i < BoardSize; i++ {
 		for j := 0; j < BoardSize; j++ {
-			if g.PersonalBoard.Tokens[i][j].Color == Gray && g.PersonalBoard.Tokens[i][j].Height > NoHeight {
+			if g.Landscape.Tokens[i][j].Color == Gray && g.Landscape.Tokens[i][j].Height > NoHeight {
 				mountains[Coordinate{i, j}] = false // false means not yet counted
 			}
 		}
@@ -105,7 +105,7 @@ func (g *Game) CountMountains() int {
 	for coord, isAdjacent := range mountains {
 		if isAdjacent {
 			// Mountains score based on height
-			points += int(g.PersonalBoard.Tokens[coord.X][coord.Y].Height)
+			points += int(g.Landscape.Tokens[coord.X][coord.Y].Height)
 		}
 	}
 
@@ -123,7 +123,7 @@ func (g *Game) CountFields() int {
 	// Find contiguous groups of yellow tokens
 	for i := 0; i < BoardSize; i++ {
 		for j := 0; j < BoardSize; j++ {
-			if g.PersonalBoard.Tokens[i][j].Color == Yellow && !visited[i][j] {
+			if g.Landscape.Tokens[i][j].Color == Yellow && !visited[i][j] {
 				size := dfs(g, visited, i, j, Yellow)
 				if size >= 2 {
 					count++
@@ -146,7 +146,7 @@ func (g *Game) CountRivers() int {
 
 	for i := 0; i < BoardSize; i++ {
 		for j := 0; j < BoardSize; j++ {
-			if g.PersonalBoard.Tokens[i][j].Color == Blue && !visited[i][j] {
+			if g.Landscape.Tokens[i][j].Color == Blue && !visited[i][j] {
 				length := dfs(g, visited, i, j, Blue)
 				if length > maxLength {
 					maxLength = length
