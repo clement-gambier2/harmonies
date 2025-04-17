@@ -1,0 +1,81 @@
+name: Release on Push to Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
+          echo "Current version: ${LATEST_TAG}"
+
+      - name: Determine version bump
+        id: version_bump
+        run: |
+          COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
+          echo "Commit message: ${COMMIT_MESSAGE}"
+
+          if [[ $COMMIT_MESSAGE == "feat:"* ]]; then
+            TYPE="minor"
+          elif [[ $COMMIT_MESSAGE == "chore:"* ]]; then
+            TYPE="patch"
+          elif [[ $COMMIT_MESSAGE == "BREAKING CHANGE:"* ]]; then
+            TYPE="major"
+          else
+            TYPE="none"
+          fi
+
+          if [ "$TYPE" != "none" ]; then
+            CURRENT_VERSION=${LATEST_TAG#v}
+            IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
+          
+            case $TYPE in
+              "major")
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              "minor")
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              "patch")
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+          
+            NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+            echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+            echo "BUMP_TYPE=${TYPE}" >> $GITHUB_ENV
+            echo "Version bump: ${TYPE}, New version: ${NEW_VERSION}"
+          fi
+
+      - name: Create Release
+        if: env.NEW_VERSION != ''
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.NEW_VERSION }}
+          release_name: Release ${{ env.NEW_VERSION }}
+          body: |
+            Changes in this release:
+            ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: false
