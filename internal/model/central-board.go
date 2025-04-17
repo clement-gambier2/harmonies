@@ -1,4 +1,4 @@
-package main
+package model
 
 // CentralBoard represents the central board with token spaces
 type CentralBoard struct {

@@ -1,4 +1,9 @@
-package main
+package game
+
+import (
+	"harmonies/internal/model"
+	"harmonies/pkg"
+)
 
 func (g *Game) CalculateScore() int {
 	score := 0
@@ -27,16 +32,16 @@ func (g *Game) CalculateScore() int {
 
 func (g *Game) CountBuildings() int {
 	count := 0
-	for i := 0; i < BoardSize; i++ {
-		for j := 0; j < BoardSize; j++ {
-			if g.Landscape.Tokens[i][j].Color == Red && g.Landscape.Tokens[i][j].Height == TwoHigh {
+	for i := 0; i < pkg.BoardSize; i++ {
+		for j := 0; j < pkg.BoardSize; j++ {
+			if g.Landscape.Tokens[i][j].Color == model.Red && g.Landscape.Tokens[i][j].Height == model.TwoHigh {
 				// Check if surrounded by at least 3 different colors
-				colors := make(map[TokenColor]bool)
+				colors := make(map[model.TokenColor]bool)
 
 				// Check adjacent spaces
 				for _, dir := range []struct{ dx, dy int }{{0, 1}, {1, 0}, {0, -1}, {-1, 0}} {
 					ni, nj := i+dir.dx, j+dir.dy
-					if ni >= 0 && ni < BoardSize && nj >= 0 && nj < BoardSize && g.Landscape.Tokens[ni][nj].Color != Empty {
+					if ni >= 0 && ni < pkg.BoardSize && nj >= 0 && nj < pkg.BoardSize && g.Landscape.Tokens[ni][nj].Color != model.Empty {
 
 						colors[g.Landscape.Tokens[ni][nj].Color] = true
 					}
@@ -53,9 +58,9 @@ func (g *Game) CountBuildings() int {
 
 func (g *Game) CountTrees() int {
 	points := 0
-	for i := 0; i < BoardSize; i++ {
-		for j := 0; j < BoardSize; j++ {
-			if g.Landscape.Tokens[i][j].Color == Green {
+	for i := 0; i < pkg.BoardSize; i++ {
+		for j := 0; j < pkg.BoardSize; j++ {
+			if g.Landscape.Tokens[i][j].Color == model.Green {
 				// Trees score based on height
 				points += int(g.Landscape.Tokens[i][j].Height)
 			}
@@ -66,13 +71,13 @@ func (g *Game) CountTrees() int {
 
 func (g *Game) CountMountains() int {
 	points := 0
-	mountains := make(map[Coordinate]bool)
+	mountains := make(map[model.Coordinate]bool)
 
 	// First pass: identify all mountains
-	for i := 0; i < BoardSize; i++ {
-		for j := 0; j < BoardSize; j++ {
-			if g.Landscape.Tokens[i][j].Color == Gray && g.Landscape.Tokens[i][j].Height > NoHeight {
-				mountains[Coordinate{i, j}] = false // false means not yet counted
+	for i := 0; i < pkg.BoardSize; i++ {
+		for j := 0; j < pkg.BoardSize; j++ {
+			if g.Landscape.Tokens[i][j].Color == model.Gray && g.Landscape.Tokens[i][j].Height > model.NoHeight {
+				mountains[model.Coordinate{i, j}] = false // false means not yet counted
 			}
 		}
 	}
@@ -81,7 +86,7 @@ func (g *Game) CountMountains() int {
 	for coord := range mountains {
 		for _, dir := range []struct{ dx, dy int }{{0, 1}, {1, 0}, {0, -1}, {-1, 0}} {
 			ni, nj := coord.X+dir.dx, coord.Y+dir.dy
-			if _, exists := mountains[Coordinate{ni, nj}]; exists {
+			if _, exists := mountains[model.Coordinate{ni, nj}]; exists {
 				mountains[coord] = true // This mountain is adjacent to another mountain
 				break
 			}
@@ -101,16 +106,16 @@ func (g *Game) CountMountains() int {
 
 func (g *Game) CountFields() int {
 	count := 0
-	visited := make([][]bool, BoardSize)
+	visited := make([][]bool, pkg.BoardSize)
 	for i := range visited {
-		visited[i] = make([]bool, BoardSize)
+		visited[i] = make([]bool, pkg.BoardSize)
 	}
 
 	// Find contiguous groups of yellow tokens
-	for i := 0; i < BoardSize; i++ {
-		for j := 0; j < BoardSize; j++ {
-			if g.Landscape.Tokens[i][j].Color == Yellow && !visited[i][j] {
-				size := dfs(g, visited, i, j, Yellow)
+	for i := 0; i < pkg.BoardSize; i++ {
+		for j := 0; j < pkg.BoardSize; j++ {
+			if g.Landscape.Tokens[i][j].Color == model.Yellow && !visited[i][j] {
+				size := dfs(g, visited, i, j, model.Yellow)
 				if size >= 2 {
 					count++
 				}
@@ -124,15 +129,15 @@ func (g *Game) CountFields() int {
 func (g *Game) CountRivers() int {
 	// Find the longest river (consecutive blue tokens)
 	maxLength := 0
-	visited := make([][]bool, BoardSize)
+	visited := make([][]bool, pkg.BoardSize)
 	for i := range visited {
-		visited[i] = make([]bool, BoardSize)
+		visited[i] = make([]bool, pkg.BoardSize)
 	}
 
-	for i := 0; i < BoardSize; i++ {
-		for j := 0; j < BoardSize; j++ {
-			if g.Landscape.Tokens[i][j].Color == Blue && !visited[i][j] {
-				length := dfs(g, visited, i, j, Blue)
+	for i := 0; i < pkg.BoardSize; i++ {
+		for j := 0; j < pkg.BoardSize; j++ {
+			if g.Landscape.Tokens[i][j].Color == model.Blue && !visited[i][j] {
+				length := dfs(g, visited, i, j, model.Blue)
 				if length > maxLength {
 					maxLength = length
 				}

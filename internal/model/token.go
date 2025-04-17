@@ -1,4 +1,4 @@
-package main
+package model
 
 // Token represents a colored token on the board
 type Token struct {
@@ -7,7 +7,6 @@ type Token struct {
 	Cube   bool // Whether an animal cube is on this token
 }
 
-// Token colors
 type TokenColor int
 
 const (
@@ -20,7 +19,6 @@ const (
 	Red
 )
 
-// Token heights
 type TokenHeight int
 
 const (
@@ -30,7 +28,6 @@ const (
 	ThreeHigh
 )
 
-// Define the color names for display
 func ColorName(color TokenColor) string {
 	switch color {
 	case Empty:
@@ -52,7 +49,6 @@ func ColorName(color TokenColor) string {
 	}
 }
 
-// Define ANSI color codes for terminal display
 func ColorCode(color TokenColor) string {
 	switch color {
 	case Empty:

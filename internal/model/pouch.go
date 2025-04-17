@@ -1,13 +1,14 @@
-package main
+package model
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 // Pouch represents the bag of tokens
 type Pouch struct {
 	Tokens []TokenColor
 }
 
-// Create a new pouch with all tokens
 func NewPouch() *Pouch {
 	pouch := &Pouch{
 		Tokens: make([]TokenColor, 0),
@@ -41,7 +42,6 @@ func NewPouch() *Pouch {
 	return pouch
 }
 
-// Draw tokens from pouch
 func (p *Pouch) DrawTokens(count int) []TokenColor {
 	if len(p.Tokens) < count {
 		count = len(p.Tokens)
