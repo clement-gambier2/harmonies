@@ -1,8 +1,13 @@
-package main
+package game
+
+import (
+	"harmonies/internal/model"
+	"harmonies/pkg"
+)
 
 // Depth-first search to find contiguous groups
-func dfs(g *Game, visited [][]bool, i, j int, color TokenColor) int {
-	if i < 0 || i >= BoardSize || j < 0 || j >= BoardSize ||
+func dfs(g *Game, visited [][]bool, i, j int, color model.TokenColor) int {
+	if i < 0 || i >= pkg.BoardSize || j < 0 || j >= pkg.BoardSize ||
 		visited[i][j] || g.Landscape.Tokens[i][j].Color != color {
 		return 0
 	}
